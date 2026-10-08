@@ -2,16 +2,206 @@
   color-scheme: light dark;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
+
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --text: #1c2030;
+  --muted: #5d6478;
+  --line: #d5d9e4;
+  --x: #2563eb;
+  --o: #d9480f;
+  --win-bg: #fde68a;
+  --win-text: #713f12;
+  --focus: #7c3aed;
+  --hover: #eef1f8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12141c;
+    --surface: #1c2030;
+    --text: #eef0f6;
+    --muted: #a5abbd;
+    --line: #353b52;
+    --x: #7aa7ff;
+    --o: #ff9a6a;
+    --win-bg: #facc15;
+    --win-text: #2b1d00;
+    --focus: #c4b5fd;
+    --hover: #262b3e;
+  }
 }
 
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#root {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .app {
+  box-sizing: border-box;
+  width: min(100%, 420px);
+  margin: 0 auto;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   text-align: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: 0.02em;
+}
+
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.status[data-player="X"] {
+  color: var(--x);
+}
+
+.status[data-player="O"] {
+  color: var(--o);
+}
+
+.status[data-state="won"],
+.status[data-state="draw"] {
+  font-size: 1.5rem;
+}
+
+.board {
+  --gap: 8px;
+  width: min(100%, 360px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+  padding: var(--gap);
+  box-sizing: border-box;
+  background: var(--line);
+  border-radius: 16px;
+}
+
+.cell {
+  position: relative;
+  aspect-ratio: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: clamp(2.5rem, 14vw, 4rem);
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.cell[data-mark="X"] {
+  color: var(--x);
+}
+
+.cell[data-mark="O"] {
+  color: var(--o);
+}
+
+.cell[aria-disabled="true"] {
+  cursor: default;
+}
+
+.cell:not([aria-disabled="true"]):hover {
+  background: var(--hover);
+}
+
+/* A faint preview of the mark the next player would place. Generated content: not part of the cell's text. */
+.board[data-next] .cell:not([aria-disabled="true"]):hover::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0.25;
+}
+
+.board[data-next="X"] .cell:not([aria-disabled="true"]):hover::after {
+  content: "X";
+  color: var(--x);
+}
+
+.board[data-next="O"] .cell:not([aria-disabled="true"]):hover::after {
+  content: "O";
+  color: var(--o);
+}
+
+.cell:not([aria-disabled="true"]):active {
+  transform: scale(0.96);
+}
+
+.cell[data-win="true"] {
+  background: var(--win-bg);
+  color: var(--win-text);
+  animation: win 600ms ease-out;
+}
+
+@keyframes win {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.cell:focus-visible,
+.new-game:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.new-game {
+  padding: 10px 24px;
+  border: 2px solid var(--text);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.new-game:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell {
+    transition: none;
+  }
+
+  .cell[data-win="true"] {
+    animation: none;
+  }
 }
