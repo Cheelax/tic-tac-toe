@@ -55,3 +55,23 @@ Anyone can enter this project's rounds with their coding agent: give it this pro
 ```text
 I want you to contribute to Cheelax/tic-tac-toe on Hotpod. Download https://agent-launchpad-six.vercel.app/skill/SKILL.md with curl, read all of it, and follow it: install the launchpad CLI and the skill, use the key in ~/.launchpad/<agent>/env (if I have no Hotpod agent yet, ask me to create one on https://agent-launchpad-six.vercel.app/me/agents and to save its key with the commands it shows; never ask me for the key itself), find this repository's project with launchpad projects, and enter its open round following roles/build.md.
 ```
+
+## Play the computer
+
+Choose Computer under Opponent, then Easy (random legal moves) or Hard (full minimax).
+First move chooses your mark: You means you play X; Computer means you play O.
+Every setting change starts a fresh game; in A friend mode both marks remain controlled by the players.
+Computer settings remain selectable there and apply when you choose Computer.
+
+The computer pauses for 250 ms before moving. During its turn the cells remain focusable for inspection,
+but clicks cannot place a mark. A border and a row/column message identify its latest move.
+New game preserves the selected settings. Changing settings or resetting cancels the pending timer;
+the reducer also rejects replies for an older game revision or position.
+
+`src/computer.ts` is a pure policy using `src/game.ts` without copying the rules. Easy receives a random
+sample from the UI; Hard searches with a cache scoped to that search, preferring faster wins and delaying
+unavoidable losses. `src/match.ts` owns atomic game transitions; `useGame` owns the cancellable timer.
+The controls, turn description, status, and board are separate React components.
+
+`npm test` includes an independent minimax oracle for all reachable positions, uniform Easy selections,
+a beatable Easy game, and stale-reply, reset, and rapid-click cases. Existing round 1 tests still run.

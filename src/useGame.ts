@@ -1,24 +1,27 @@
-import { useCallback, useMemo, useState } from "react";
-import { boardOf, NEW_GAME, outcomeOf, play, type Board, type Moves, type Outcome } from "./game";
+import { useCallback, useEffect, useMemo, useReducer } from "react";
+import { boardOf, outcomeOf } from "./game";
+import { easyMove, hardMove } from "./computer";
+import { INITIAL_MATCH, isComputerTurn, matchReducer, type Settings } from "./match";
 
-export interface GameState {
-  moves: Moves;
-  board: Board;
-  outcome: Outcome;
-  /** Plays `cell` for the player whose turn it is; an illegal move changes nothing. */
-  playCell: (cell: number) => void;
-  /** Starts over: an empty board, X to play. */
-  newGame: () => void;
-}
+export const COMPUTER_PAUSE_MS = 250;
 
-/** The game's state for React: the moves played, and what follows from them (see game.ts). */
-export function useGame(): GameState {
-  const [moves, setMoves] = useState<Moves>(NEW_GAME);
-  const board = useMemo(() => boardOf(moves), [moves]);
+/** React owns scheduling; the computer policy and match transitions have no UI dependency. */
+export function useGame() {
+  const [match, dispatch] = useReducer(matchReducer, INITIAL_MATCH);
+  const board = useMemo(() => boardOf(match.moves), [match.moves]);
   const outcome = useMemo(() => outcomeOf(board), [board]);
-  // Updates read the latest moves, never the ones of the last render: two clicks before React re-renders
-  // (a fast double click) are judged one after the other, and an illegal one returns the same moves (no render).
-  const playCell = useCallback((cell: number) => setMoves((current) => play(current, cell)), []);
-  const newGame = useCallback(() => setMoves(NEW_GAME), []);
-  return { moves, board, outcome, playCell, newGame };
+  const thinking = isComputerTurn(match);
+  useEffect(() => {
+    if (!thinking) return;
+    const timer = window.setTimeout(() => {
+      const cell = match.settings.difficulty === "hard"
+        ? hardMove(match.moves) : easyMove(match.moves, Math.random());
+      if (cell !== null) dispatch({ type: "computer", cell, moves: match.moves, revision: match.revision });
+    }, COMPUTER_PAUSE_MS);
+    return () => window.clearTimeout(timer);
+  }, [match, thinking]);
+  const playCell = useCallback((cell: number) => dispatch({ type: "human", cell }), []);
+  const newGame = useCallback(() => dispatch({ type: "reset" }), []);
+  const changeSettings = useCallback((settings: Partial<Settings>) => dispatch({ type: "settings", settings }), []);
+  return { moves: match.moves, settings: match.settings, board, outcome, thinking, playCell, newGame, changeSettings };
 }
