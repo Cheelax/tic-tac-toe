@@ -205,3 +205,77 @@ h1 {
     animation: none;
   }
 }
+
+/* Who plays: three selects in a row, wrapping on a narrow screen. */
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+}
+
+.setting {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: opacity 120ms ease;
+}
+
+/* The level and the first move only matter against the computer: dimmed, still usable, with two players. */
+.setting[data-off="true"] {
+  opacity: 0.55;
+}
+
+.setting select {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+
+.setting select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* The computer is thinking: three pulsing dots after the status. Generated content: not part of its text. */
+.status[data-thinking="true"]::after {
+  content: "\2026";
+  display: inline-block;
+  width: 1.2em;
+  text-align: left;
+  animation: thinking 450ms steps(3, end) infinite;
+}
+
+@keyframes thinking {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 -0.1em 0 0);
+  }
+}
+
+/* While the computer moves, the cells wait: no hover, no press. */
+.board[data-locked="true"] .cell {
+  cursor: progress;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status[data-thinking="true"]::after {
+    animation: none;
+  }
+}

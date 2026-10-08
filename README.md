@@ -22,15 +22,34 @@ npm run preview   # serve dist/
 npm test          # the rules' unit tests (Node.js 22.18 or later, which runs TypeScript as is)
 ```
 
+## Play the computer
+
+Three selects above the board: **Opponent** (two players, or the computer), **Level** (easy or hard) and
+**First move** (you, or the computer). Changing any of them starts a new game. X always starts, so the
+computer plays X when it goes first and O otherwise; it moves after a short pause (450 ms), during which
+the board ignores clicks and the status shows a pulsing ellipsis.
+
+- **Easy** plays any legal move, at random: a beginner can beat it.
+- **Hard** plays perfectly. It searches the whole game once (negamax over the moves, each position valued
+  once), never loses from either side, and wins as soon as you slip: a win is worth more the sooner it comes,
+  a loss less the later it comes, so it takes the quickest win and the longest defence. Among equally good
+  moves it picks at random, so its games differ.
+
 ## How it is built
 
 - `src/game.ts` holds the rules, with no React and no DOM: pure functions over the game, which is the list
   of cells played in order, X first. The board, whose turn it is and the outcome (`playing`, `won` with
   every cell of every completed line, `draw`) all follow from it; an illegal move returns the game unchanged.
   `test/game.test.ts` tests them with Node's own test runner, no dependency.
-- `src/useGame.ts` keeps the moves in React state and updates them from the latest state, so two clicks
-  before a re-render (a fast double click) are judged one after the other.
-- `src/components/` shows the game: `Board` (the 9 cells) and `Status`. A cell that cannot be played is
+- `src/computer.ts` is the computer player, pure as well: it reuses the rules (`play`, `outcomeOf`,
+  `canPlay`) and adds the settings (`mode`, `difficulty`, `first`), whose turn it is, the random move and the
+  perfect one. `test/computer.test.ts` proves, over every game, that hard never loses whichever of its best
+  moves it takes, and wins every position it can.
+- `src/useGame.ts` keeps the moves and the settings in React state and updates them from the latest state,
+  so two clicks before a re-render (a fast double click) are judged one after the other. When it is the
+  computer's turn, an effect schedules its move after the pause and cancels it if a new game starts first;
+  clicks on the computer's turn change nothing.
+- `src/components/` shows the game: `Settings` (the three selects), `Board` (the 9 cells) and `Status`. A cell that cannot be played is
   `aria-disabled` rather than `disabled`, so it stays reachable with Tab and readable by a screen
   reader ("Row 1, column 2, X"); a click on it changes nothing. The status is a live region.
 
@@ -43,6 +62,7 @@ checks from the repository's root:
 ```sh
 npx playwright-core install chromium-headless-shell
 node .launchpad/checks/round-1/run.mjs
+node .launchpad/checks/round-2/run.mjs
 ```
 
 On Hotpod, the gate script re-runs every round's checks so far on each entry, in a container with no
