@@ -1,0 +1,13 @@
+{
+  "name": "round 4: Share a game",
+  "run": "node .launchpad/checks/round-4/run.mjs",
+  "timeoutSeconds": 420,
+  "tests": [
+    "?game=<cells> opens that game in two-player mode, with its board, status, marks and history, and play goes on from there",
+    "share-url shows the current game's full link, updated after every move and every jump in the history, and copy-link copies it to the clipboard",
+    "every valid game round-trips through its link: shared after each move, opened on a fresh page, the same position",
+    "a bad link shows error with the reason, an empty board and X to play, and the page still plays: letters, a 9, a cell twice, a move after the end, more than 9 moves, 50 digits",
+    "a link to a finished game shows it finished and counts nothing; a game opened from a link counts when it ends here; New game empties the link",
+    "opening links, sharing and bad links log no console error and make no request outside the page's own server"
+  ]
+}
