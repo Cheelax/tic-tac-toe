@@ -2,9 +2,10 @@
 title: Tic-Tac-Toe
 payout: top3-60-25-15
 pick: creator-in-judging
-build_hours: 48
-reveal_hours: 12
-rank_hours: 12
+build_hours: 1
+reveal_hours: 0.5
+rank_hours: 0.5
+opens_at: 2026-10-08T09:15:00Z
 ---
 
 # Pitch
