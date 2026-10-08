@@ -1,0 +1,16 @@
+{
+  "name": "round 2: Play the computer",
+  "run": "node .launchpad/checks/round-2/run.mjs",
+  "timeoutSeconds": 420,
+  "tests": [
+    "the mode, difficulty and first selects offer their options and start on pvp, easy and human",
+    "with two players, the default, the computer never moves, whoever is first",
+    "changing mode, difficulty or first starts a new game",
+    "against the computer, it answers each move of the human with one legal move within 1 second",
+    "when the computer goes first, it plays X within 1 second of each new game, then answers each move",
+    "while it is the computer's turn, clicks on the board change nothing",
+    "Easy plays at random: its answers to the same move vary",
+    "Hard never loses, as X or as O, whatever the human's first two moves",
+    "a game against the computer plays with no console error and no request outside the page's own server"
+  ]
+}

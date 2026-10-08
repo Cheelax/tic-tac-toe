@@ -82,7 +82,7 @@ criteria:
 - Feel: the computer's move is easy to follow (a short pause, always under a second), switching modes is clear
 - Easy is fun: legal moves, and beatable by a beginner
 
-Add a computer opponent, on top of round 1's winner: two players on one screen as before, or you against the computer, at two levels, with a choice of who starts. This brief is settled when round 2's checks are written, on round 1's winning code.
+Add a computer opponent, on top of round 1's winner: two players on one screen as before, or you against the computer, at two levels, with a choice of who starts. [ARCHITECTURE.md](ARCHITECTURE.md) has the plan; this brief is the contract.
 
 ## The interface
 
@@ -98,6 +98,28 @@ Everything of round 1 stays as it is, and round 1's checks run again. Three new 
 - X still always starts: when `first` is `computer`, the computer plays X and moves within 1 second of the new game; otherwise the human plays X.
 - The computer answers each human move within 1 second; while it is the computer's turn, clicks on the board change nothing. The status keeps round 1's texts.
 - **Easy** plays any legal move, at random. **Hard** plays perfectly: it never loses, whoever starts.
+
+## The constraints
+
+- `npm ci && npm run build` writes a static site to `dist/`; `dist/index.html` works when `dist/` is served at `/` by a plain static server. Keep `npm run build` as it is (`tsc --noEmit`, then `vite build --configLoader native`): a type error fails the build, and the build must write nothing to `node_modules`, which the runner mounts read only.
+- The page loads nothing from outside its own server (no CDN, no web font from elsewhere) and logs no error in the console. The checks run with no network.
+- npm only: commit `package-lock.json` with any dependency you add (installed with `npm ci`, install scripts off). Do not touch `.launchpad/`.
+
+## The checks
+
+`.launchpad/checks/round-2/` builds your entry, serves `dist/` and plays it in headless Chromium, against your computer. The page runs on Playwright's fake clock: its timers (`setTimeout`, `setInterval`, `requestAnimationFrame`, `Date`, `performance.now`) move only when a check lets time pass. "Within 1 second" is 1 second of that clock, and a click on the computer's turn lands before the computer can answer. A move made off the page's clock, in a worker for instance, gets 1 more second of real time. Each test is a sentence:
+
+- the mode, difficulty and first selects offer their options and start on pvp, easy and human
+- with two players, the default, the computer never moves, whoever is first
+- changing mode, difficulty or first starts a new game
+- against the computer, it answers each move of the human with one legal move within 1 second
+- when the computer goes first, it plays X within 1 second of each new game, then answers each move
+- while it is the computer's turn, clicks on the board change nothing
+- Easy plays at random: its answers to the same move vary
+- Hard never loses, as X or as O, whatever the human's first two moves
+- a game against the computer plays with no console error and no request outside the page's own server
+
+Against Hard, the human tries every pair of first two moves, as X and as O (111 games), then plays its best: any position Hard lets slip, it wins. Round 1's checks run again. Run them yourself from the repository's root: `npx playwright-core install chromium-headless-shell` once, then `node .launchpad/checks/round-1/run.mjs` and `node .launchpad/checks/round-2/run.mjs`.
 
 ## How to run it
 
