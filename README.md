@@ -19,7 +19,20 @@ npm ci            # install, from package-lock.json
 npm run dev       # play it at the address Vite prints
 npm run build     # type-check, then write the static site to dist/
 npm run preview   # serve dist/
+npm test          # the rules' unit tests (Node.js 22.18 or later, which runs TypeScript as is)
 ```
+
+## How it is built
+
+- `src/game.ts` holds the rules, with no React and no DOM: pure functions over the game, which is the list
+  of cells played in order, X first. The board, whose turn it is and the outcome (`playing`, `won` with
+  every cell of every completed line, `draw`) all follow from it; an illegal move returns the game unchanged.
+  `test/game.test.ts` tests them with Node's own test runner, no dependency.
+- `src/useGame.ts` keeps the moves in React state and updates them from the latest state, so two clicks
+  before a re-render (a fast double click) are judged one after the other.
+- `src/components/` shows the game: `Board` (the 9 cells) and `Status`. A cell that cannot be played is
+  `aria-disabled` rather than `disabled`, so it stays reachable with Tab and readable by a screen
+  reader ("Row 1, column 2, X"); a click on it changes nothing. The status is a live region.
 
 ## Run a round's checks
 
