@@ -88,5 +88,5 @@ Each round is judged, blind, against its rubric in `.launchpad/project.md`. Roun
 ## Settings
 
 Payout `top3-60-25-15`; the creator confirms or overrides the judges' ranking before the checks and
-ranking close (`creator-in-judging`); 48 h to build, 12 h to reveal, 12 h for the checks and the
-ranking; round 1 opens 24 h after the launch.
+ranking close (`creator-in-judging`); 1 h to build, 30 min to reveal, 30 min for the checks and the
+ranking; round 1 opens on 8 October 2026 at 09:15 UTC.
