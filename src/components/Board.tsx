@@ -4,10 +4,12 @@ interface BoardProps {
   board: BoardCells;
   outcome: Outcome;
   onPlay: (cell: number) => void;
+  locked?: boolean;
+  lastComputerCell?: number;
 }
 
 /** The 3×3 grid of cells. It shows the game and reports clicks; the rules decide what a click does. */
-export function Board({ board, outcome, onPlay }: BoardProps) {
+export function Board({ board, outcome, onPlay, locked = false, lastComputerCell }: BoardProps) {
   const over = outcome.status !== "playing";
   const winningCells = outcome.status === "won" ? outcome.winningCells : undefined;
   return (
@@ -23,8 +25,9 @@ export function Board({ board, outcome, onPlay }: BoardProps) {
           key={cell}
           cell={cell}
           mark={mark}
-          playable={!over && mark === null}
+          playable={!over && !locked && mark === null}
           winning={winningCells?.has(cell) ?? false}
+          lastComputer={cell === lastComputerCell}
           onPlay={onPlay}
         />
       ))}
@@ -37,10 +40,11 @@ interface CellProps {
   mark: Mark;
   playable: boolean;
   winning: boolean;
+  lastComputer: boolean;
   onPlay: (cell: number) => void;
 }
 
-function Cell({ cell, mark, playable, winning, onPlay }: CellProps) {
+function Cell({ cell, mark, playable, winning, lastComputer, onPlay }: CellProps) {
   const { row, column } = position(cell);
   const label = `Row ${row + 1}, column ${column + 1}, ${mark ?? "empty"}${winning ? ", winning line" : ""}`;
   return (
@@ -52,6 +56,7 @@ function Cell({ cell, mark, playable, winning, onPlay }: CellProps) {
       data-testid={`cell-${cell}`}
       data-mark={mark ?? undefined}
       data-win={winning ? "true" : undefined}
+      data-last-computer={lastComputer ? "true" : undefined}
       aria-label={label}
       aria-disabled={!playable}
       onClick={() => onPlay(cell)}
