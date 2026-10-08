@@ -106,3 +106,20 @@ export function statusText(outcome: Outcome): string {
       return "Draw";
   }
 }
+
+export type Direction = "up" | "down" | "left" | "right";
+
+const STEPS: Record<Direction, { row: number; column: number }> = {
+  up: { row: -1, column: 0 },
+  down: { row: 1, column: 0 },
+  left: { row: 0, column: -1 },
+  right: { row: 0, column: 1 },
+};
+
+const clamp = (n: number) => Math.min(SIZE - 1, Math.max(0, n));
+
+/** The cell next to `cell` toward `direction`, by row and column; at the edge of the board, `cell` itself. */
+export function neighbour(cell: number, direction: Direction): number {
+  const { row, column } = position(cell);
+  return clamp(row + STEPS[direction].row) * SIZE + clamp(column + STEPS[direction].column);
+}
