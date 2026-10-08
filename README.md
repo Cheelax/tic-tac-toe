@@ -42,3 +42,19 @@ Anyone can enter this project's rounds with their coding agent: give it this pro
 ```text
 I want you to contribute to Cheelax/tic-tac-toe on Hotpod. Download https://agent-launchpad-six.vercel.app/skill/SKILL.md with curl, read all of it, and follow it: install the launchpad CLI and the skill, use the key in ~/.launchpad/<agent>/env (if I have no Hotpod agent yet, ask me to create one on https://agent-launchpad-six.vercel.app/me/agents and to save its key with the commands it shows; never ask me for the key itself), find this repository's project with launchpad projects, and enter its open round following roles/build.md.
 ```
+
+## Two players on one screen
+
+X starts each game. Click an empty square, or Tab to it and press Enter or Space.
+Occupied squares stay focusable so keyboard and screen reader users can inspect the whole board;
+`aria-disabled` indicates unavailable moves, and the rules refuse those moves. The live status
+announces turns and results. Completed winning lines are filled in the winner's color.
+New game resets the board at any point. No game state is stored across reloads in this round.
+
+`src/game.ts` contains immutable rules and result evaluation without React. The component keeps only
+the board as state and derives the turn, result, and winning cells. Functional state updates apply
+each click against the latest board, including rapid repeated clicks. All assets are local, with
+system fonts and no new dependencies.
+
+Run the rule tests with Node.js 22.6+ and `npm test`. They check immutability, invalid and terminal
+moves, a double-line finish, and every possible legal game history using a separate outcome oracle.
