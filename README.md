@@ -75,3 +75,20 @@ The controls, turn description, status, and board are separate React components.
 
 `npm test` includes an independent minimax oracle for all reachable positions, uniform Easy selections,
 a beatable Easy game, and stale-reply, reset, and rapid-click cases. Existing round 1 tests still run.
+
+## Score, move history, and keyboard
+
+The scoreboard tracks X wins, O wins and draws in both modes. Scores alone persist in this browser's
+localStorage; reload starts an empty game without recounting any previous finish. Reset scores changes
+only the totals. If storage is unavailable, play continues with in-memory scores and a visible notice.
+
+A game counts exactly once, at its first finish. Rewinding and finishing it again, even with a different
+winner, never increments the score. New game or any setting change starts a new countable game.
+History keeps every position until a legal move from an earlier step replaces the later moves. A jump
+to the computer's turn schedules a new reply; jumps invalidate older replies through the existing
+revision guard. Navigation itself never scores a result.
+
+Use Tab to reach a square, arrows to move by row/column (stopping at the edges), and Enter or Space to
+play. Occupied squares stay focusable. History buttons name the mark and square and identify the current
+step with aria-current. Desktop places the records beside the board; phone stacks them with wrapping
+history buttons. Score storage is isolated in scoreStorage.ts; match.ts owns the timeline and counting.

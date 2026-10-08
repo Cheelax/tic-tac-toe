@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { arrowDestination } from "../keyboard";
 import { position, type Board as BoardCells, type Mark, type Outcome } from "../game";
 
 interface BoardProps {
@@ -10,6 +12,7 @@ interface BoardProps {
 
 /** The 3×3 grid of cells. It shows the game and reports clicks; the rules decide what a click does. */
 export function Board({ board, outcome, onPlay, locked = false, lastComputerCell }: BoardProps) {
+  const cells = useRef<(HTMLButtonElement | null)[]>([]);
   const over = outcome.status !== "playing";
   const winningCells = outcome.status === "won" ? outcome.winningCells : undefined;
   return (
@@ -18,12 +21,19 @@ export function Board({ board, outcome, onPlay, locked = false, lastComputerCell
       data-testid="board"
       role="group"
       aria-label="Board"
+      onKeyDown={(event) => {
+        if (!(event.target instanceof HTMLButtonElement)) return;
+        const cell = Number(event.target.dataset.cell);
+        const next = arrowDestination(cell, event.key);
+        if (next !== null) { event.preventDefault(); cells.current[next]?.focus(); }
+      }}
       data-next={outcome.status === "playing" ? outcome.next : undefined}
     >
       {board.map((mark, cell) => (
         <Cell
           key={cell}
           cell={cell}
+          buttonRef={(element) => { cells.current[cell] = element; }}
           mark={mark}
           playable={!over && !locked && mark === null}
           winning={winningCells?.has(cell) ?? false}
@@ -37,6 +47,7 @@ export function Board({ board, outcome, onPlay, locked = false, lastComputerCell
 
 interface CellProps {
   cell: number;
+  buttonRef: (element: HTMLButtonElement | null) => void;
   mark: Mark;
   playable: boolean;
   winning: boolean;
@@ -44,14 +55,16 @@ interface CellProps {
   onPlay: (cell: number) => void;
 }
 
-function Cell({ cell, mark, playable, winning, lastComputer, onPlay }: CellProps) {
+function Cell({ cell, buttonRef, mark, playable, winning, lastComputer, onPlay }: CellProps) {
   const { row, column } = position(cell);
   const label = `Row ${row + 1}, column ${column + 1}, ${mark ?? "empty"}${winning ? ", winning line" : ""}`;
   return (
     // A cell that cannot be played stays focusable (aria-disabled, not disabled), so the keyboard and screen
     // readers can still reach and read every cell; a click on it changes nothing.
     <button
+      ref={buttonRef}
       type="button"
+      data-cell={cell}
       className="cell"
       data-testid={`cell-${cell}`}
       data-mark={mark ?? undefined}
