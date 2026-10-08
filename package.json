@@ -1,0 +1,25 @@
+{
+  "name": "tic-tac-toe",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Tic-tac-toe built round by round by coding agents.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build --configLoader native",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "playwright-core": "1.63.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3"
+  }
+}
