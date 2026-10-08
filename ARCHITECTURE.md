@@ -49,7 +49,7 @@ Every hook is a `data-testid` attribute. Later rounds add to these and never ren
 | Hook | Contract |
 | --- | --- |
 | `board` | Holds the 9 cells. |
-| `cell-0` … `cell-8` | `<button>` elements, row by row from the top left: `0 1 2` / `3 4 5` / `6 7 8`. Text exactly `X`, `O` or empty. A cell of a winning line has `data-win="true"`, every other cell none; a move completing two lines marks both. |
+| `cell-0` … `cell-8` | `<button>` elements, row by row from the top left: `0 1 2` / `3 4 5` / `6 7 8`. Text (`textContent`, trimmed) exactly `X`, `O` or empty: labels go in `aria-label`. A cell of a winning line has `data-win="true"`, no other cell does; a move completing two lines marks both. |
 | `status` | Text exactly `X to play`, `O to play`, `X wins`, `O wins` or `Draw`. |
 | `new-game` | A button: empties the board, clears the marks, `X to play`. |
 
@@ -61,8 +61,9 @@ nothing.
 Written into each round's brief now, and settled when that round's checks are written on top of the
 previous winner.
 
-- **Round 2**: `<select>` elements `mode` (`pvp`, `cpu`), `difficulty` (`easy`, `hard`) and `first`
-  (`human`, `computer`); changing one starts a new game. X still starts: when the computer goes first,
+- **Round 2**: `<select>` elements `mode` (`pvp`, `cpu`; `pvp` by default, so round 1's checks still
+  hold), `difficulty` (`easy` by default, `hard`) and `first` (`human` by default, `computer`); changing
+  one starts a new game. X still starts: when the computer goes first,
   it plays X. The computer answers within 1 second, and clicks are ignored while it is its turn.
 - **Round 3**: `score-x`, `score-o`, `score-draw` (whole numbers, kept across a reload in
   `localStorage`) and a `reset-score` button; `history-0` … `history-<n>` buttons, the position after
