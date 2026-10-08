@@ -256,3 +256,32 @@ button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
   .history button { font-size: 11px; gap: 2px; }
   .history .history-step { display: none; }
 }
+
+/* Wide screens: the board and its status on the left, setup, score and moves on the right; the reading order
+   (the DOM, Tab) stays the phone's. */
+@media (min-width: 840px) {
+  .app {
+    width: min(100%, 780px);
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto 1fr auto;
+    grid-template-areas:
+      "heading heading"
+      "summary controls"
+      "board controls"
+      "board score"
+      "board history"
+      "newgame hint";
+    column-gap: 40px;
+    row-gap: 14px;
+    align-items: start;
+  }
+  .game-heading { grid-area: heading; }
+  .game-controls { grid-area: controls; }
+  .score { grid-area: score; }
+  .turn-summary { grid-area: summary; }
+  .board { grid-area: board; width: 360px; }
+  .history { grid-area: history; width: 100%; }
+  .new-game { grid-area: newgame; justify-self: center; }
+  .keyboard-hint { grid-area: hint; align-self: center; text-align: left; }
+}

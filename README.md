@@ -75,3 +75,31 @@ The controls, turn description, status, and board are separate React components.
 
 `npm test` includes an independent minimax oracle for all reachable positions, uniform Easy selections,
 a beatable Easy game, and stale-reply, reset, and rapid-click cases. Existing round 1 tests still run.
+
+## Score, history and keyboard
+
+- **One place for the state.** `src/match.ts` holds the current game's `history` (every move), the position
+  shown (`moves`, a prefix of it), the settings and the `score`. A game counts in the same reducer step as
+  the move that first ends it, X's win, O's win or a draw, in either mode, and a `counted` flag keeps it from
+  counting again: rewinding a finished game and ending it differently adds nothing, jumping through the
+  history or reloading adds nothing. Only New game or a change of settings starts a game that can count.
+  A game given up before its end counts nothing.
+- **Storage is isolated.** `src/storage.ts` is the only code that touches `localStorage` (key
+  `tic-tac-toe:score`). Missing, blocked, full or garbled storage never breaks the game: the score reads 0
+  and lives on in the page. A score saved by another tab of the game is picked up through the `storage`
+  event, so two tabs never overwrite each other's games. Only the score is kept across a reload, not the
+  game in progress.
+- **History.** `history-0` (Start, the empty board) to `history-n` show any position of the current game;
+  later moves stay listed, dimmed, until a move from the position shown replaces them. Against the
+  computer, a jump to the computer's turn lets it play from there (the reducer only accepts a reply for the
+  exact position that scheduled it); a jump to your turn waits for you. Reset score clears the score and
+  leaves the game as it is.
+- **Keyboard.** The board is a single Tab stop (the last cell focused). The arrow keys move by row and column
+  and stop at the edges; Enter or Space plays the focused cell, as a click. Every button and select has a
+  visible focus ring; cells keep their spoken label ("Row 2, column 3, O") and history buttons say which
+  move they show ("Move 6: O on row 3, column 2").
+- **Layout.** One column on a phone; from 840 px wide, the board on the left and setup, score and moves on
+  the right, with the same reading and Tab order.
+
+`test/history.test.ts` covers the counting rules, the history and the computer's turn after a jump;
+`test/storage.test.ts` covers storage that is empty, garbled or failing, and the arrow keys' neighbours.
