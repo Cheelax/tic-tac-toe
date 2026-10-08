@@ -227,3 +227,34 @@ select:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
   .cell:not([aria-disabled="true"]):hover { background: var(--surface); }
   .board[data-next] .cell:not([aria-disabled="true"]):hover::after { content: none; }
 }
+
+/* Desktop keeps the board and its records alongside each other; phone stacks them without overflow. */
+.app { width: min(100%, 760px); padding: 24px; }
+.game-controls { max-width: 640px; }
+.play-layout { width: 100%; display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 280px); justify-content: center; gap: 24px; margin-top: 8px; }
+.board-column { display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: 0; }
+.stats-column { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.score-section, .history-section { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; text-align: left; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.section-heading h2 { margin: 0; font-size: 14px; }
+.section-heading > span { color: var(--muted); font-size: 12px; }
+.quiet-button { min-height: 36px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); background: var(--bg); font: inherit; font-size: 11px; cursor: pointer; }
+.scoreboard { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.scoreboard > div { padding: 8px; background: var(--bg); border-radius: 8px; text-align: center; }
+.scoreboard dt { color: var(--muted); font-size: 11px; }
+.scoreboard dd { margin: 2px 0 0; font-size: 24px; font-weight: 750; overflow-wrap: anywhere; }
+.scoreboard > div:nth-child(1) dd { color: var(--x); }
+.scoreboard > div:nth-child(2) dd { color: var(--o); }
+.history-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.history-list button { min-height: 48px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; padding: 6px; cursor: pointer; }
+.history-list strong { display: block; font-size: 12px; }
+.history-list span { display: block; font-size: 11px; color: var(--muted); }
+.history-list button[aria-current="step"] { border-color: var(--x); box-shadow: inset 0 0 0 1px var(--x); background: var(--hover); }
+.panel-note { color: var(--muted); font-size: 11px; margin: 12px 0 0; line-height: 1.6; }
+.quiet-button:focus-visible, .history-list button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+@media (hover: hover) { .history-list button:hover, .quiet-button:hover { background: var(--hover); } }
+@media (max-width: 640px) {
+  .app { width: min(100%, 400px); padding: 20px 16px; }
+  .play-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .history-list { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

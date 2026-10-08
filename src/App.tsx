@@ -1,3 +1,5 @@
+import { Scoreboard } from "./components/Scoreboard";
+import { History } from "./components/History";
 import { Board } from "./components/Board";
 import { Status } from "./components/Status";
 import { GameControls } from "./components/GameControls";
@@ -17,13 +19,21 @@ export default function App() {
         <h1>Tic-Tac-Toe</h1>
       </header>
       <GameControls settings={game.settings} onChange={game.changeSettings} />
+      <div className="play-layout">
+      <section className="board-column" aria-label="Current game">
       <div className="turn-summary">
         <Status outcome={game.outcome} />
         <TurnNote moves={game.moves} outcome={game.outcome} thinking={game.thinking} settings={game.settings} />
       </div>
       <Board board={game.board} outcome={game.outcome} onPlay={game.playCell} locked={game.thinking} lastComputerCell={lastComputerCell} />
       <button type="button" className="new-game" data-testid="new-game" onClick={game.newGame}>New game</button>
-      <p className="keyboard-hint">Tab to a square · Enter or Space to play</p>
+      <p className="keyboard-hint">Arrow keys move · Enter or Space plays</p>
+      </section>
+      <aside className="stats-column" aria-label="Scores and history">
+        <Scoreboard scores={game.scores} onReset={game.resetScore} saved={game.storageAvailable} />
+        <History moves={game.history} step={game.moves.length} counted={game.counted} onJump={game.jumpTo} />
+      </aside>
+      </div>
     </main>
   );
 }
