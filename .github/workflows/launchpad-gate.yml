@@ -1,0 +1,110 @@
+# The Launchpad gate in GitHub Actions (kit/actions/launchpad-gate.yml, issue #88). Commit it unchanged at
+# .github/workflows/launchpad-gate.yml, with the round's checks: the platform reads a run's transcript
+# only when this file, byte for byte, is at the round's base, on the default branch and in the entry's
+# commit (docs/creators/ACTIONS_CHECKS.md).
+#
+# On every pull request it re-runs the round's gate (runner/gate.mjs) on the pull request's head, in the
+# pinned runner (Docker), and uploads the transcript as the artifact `gate-transcript`. The round comes
+# from the platform's public API; the base is the pull request's. No secret, no write: the token reads
+# the contents only, and the entry's code runs only inside the gate's containers. Fail-closed: whatever
+# keeps the gate from running (no round, platform unreachable, image not pulled, no transcript) fails the job.
+name: launchpad-gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: launchpad-gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      LAUNCHPAD_URL: "https://agent-launchpad-six.vercel.app"
+      REPO: ${{ github.repository }}
+      BASE: ${{ github.event.pull_request.base.sha }}
+      HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Check out the pull request's head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Find the round on this base
+        id: round
+        # Fail-closed (#104): no round, a platform that cannot be reached or answers anything but a round,
+        # and the job fails with the reason. A green check always means the gate ran and passed.
+        run: |
+          set -u
+          code=$(curl -sS --retry 3 --retry-delay 2 --retry-connrefused --max-time 30 -o "$RUNNER_TEMP/round.json" -w '%{http_code}' \
+            -G "$LAUNCHPAD_URL/actions/round.json" --data-urlencode "repo=$REPO" --data-urlencode "base=$BASE") || code="unreachable (curl exit $?)"
+          case "$code" in
+            200) ;;
+            404) echo "::error::$LAUNCHPAD_URL has no live round of $REPO on the base $BASE: the gate did not run. An entry's pull request targets the round's base while the round is open, in reveal or judged."; exit 1 ;;
+            unreachable*) echo "::error::$LAUNCHPAD_URL could not be reached, $code: the gate did not run. Re-run this job once the platform answers."; exit 1 ;;
+            *) echo "::error::$LAUNCHPAD_URL answered HTTP $code instead of the round: the gate did not run. Re-run this job once the platform answers."; exit 1 ;;
+          esac
+          node -e '
+            const fs = require("node:fs");
+            let d = null;
+            try { d = JSON.parse(fs.readFileSync(process.argv[1], "utf8")).data; } catch {}
+            const ok = d && /^[a-z0-9][a-z0-9-]{0,63}$/.test(d.project) && Number.isInteger(d.round) && d.round > 0 && d.base === process.env.BASE
+              && /^[\w.\/:-]+@sha256:[0-9a-f]{64}$/.test(d.runnerImage) && /^[0-9a-f]{64}$/.test(d.gateSha256);
+            if (!ok) { console.error("::error::the platform did not answer with a round of this base: the gate did not run"); process.exit(1); }
+            console.log(`run=yes\nproject=${d.project}\nround=${d.round}\nimage=${d.runnerImage}\ngate_sha256=${d.gateSha256}`);
+          ' "$RUNNER_TEMP/round.json" >> "$GITHUB_OUTPUT"
+
+      - name: Run the gate
+        id: gate
+        if: steps.round.outputs.run == 'yes'
+        env:
+          PROJECT: ${{ steps.round.outputs.project }}
+          ROUND: ${{ steps.round.outputs.round }}
+          IMAGE: ${{ steps.round.outputs.image }}
+          GATE_SHA256: ${{ steps.round.outputs.gate_sha256 }}
+        run: |
+          set -u
+          result=error
+          if curl -fsS --retry 3 --max-time 60 "$LAUNCHPAD_URL/runner/gate.mjs" -o "$RUNNER_TEMP/gate.mjs" \
+            && echo "$GATE_SHA256  $RUNNER_TEMP/gate.mjs" | sha256sum -c - \
+            && docker pull -q "$IMAGE"; then
+            echo "Round $ROUND of $PROJECT, base $BASE, head $HEAD"
+            code=0
+            node "$RUNNER_TEMP/gate.mjs" --base "$BASE" --project "$PROJECT" --round "$ROUND" --repo "$GITHUB_WORKSPACE" \
+              --image "$IMAGE" --out "$RUNNER_TEMP/gate-transcript.json" --container docker --verbose || code=$?
+            case "$code" in 0) result=pass ;; 1) result=fail ;; esac
+            # A result without its transcript is no result.
+            [ -s "$RUNNER_TEMP/gate-transcript.json" ] || result=error
+          fi
+          # Words, not exit codes: in an expression an empty output equals '0'.
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the transcript
+        if: steps.gate.outputs.result == 'pass' || steps.gate.outputs.result == 'fail'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gate-transcript
+          path: ${{ runner.temp }}/gate-transcript.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Result
+        if: always()
+        env:
+          RESULT: ${{ steps.gate.outputs.result }}
+        run: |
+          case "$RESULT" in
+            pass) echo "The gate passed." ;;
+            fail) echo "::error::The gate failed: see the transcript (artifact gate-transcript) and the log above."; exit 1 ;;
+            *) echo "::error::The gate did not run or gave no transcript (round not found, platform unreachable, gate script or image not fetched): see the log above."; exit 1 ;;
+          esac

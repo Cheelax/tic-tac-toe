@@ -1,0 +1,17 @@
+{
+  "name": "round 1: Two players, one screen",
+  "run": "node .launchpad/checks/round-1/run.mjs",
+  "timeoutSeconds": 300,
+  "tests": [
+    "the page shows an empty board of 9 buttons and the status X to play",
+    "X and O take turns, and the status names who plays next",
+    "X wins with three in a row on each of the 8 lines, and the status says X wins",
+    "O wins with three in a row on each of the 8 lines, and the status says O wins",
+    "only the cells of the winning lines have data-win set to true",
+    "a full board with no line is a draw, and a win on the ninth move is a win",
+    "a click on an occupied cell changes nothing",
+    "no move is accepted once the game is won",
+    "New game clears the board and the marks, and X plays first again",
+    "a whole game plays with no console error and no request outside the page's own server"
+  ]
+}
