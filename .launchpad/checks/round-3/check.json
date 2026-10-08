@@ -1,0 +1,17 @@
+{
+  "name": "round 3: Score, history and keyboard",
+  "run": "node .launchpad/checks/round-3/run.mjs",
+  "timeoutSeconds": 420,
+  "tests": [
+    "score-x, score-o and score-draw read 0 on a fresh page, reset-score is a button, and history-0 alone lists the empty board",
+    "a game counts once, when it ends, in two-player mode: X's wins, O's wins and draws, not before the end, not again on New game",
+    "the scores survive a reload, and reset-score sets them back to 0",
+    "against the computer, a finished game counts once too, whoever starts",
+    "history-0 … history-n list every position of the game; a click shows that position's board, status and marks",
+    "a move from a past position drops the later moves, and the history follows",
+    "a game counts once whatever is replayed: ending it again from its history adds nothing; a new game counts again",
+    "against the computer, a jump to the computer's turn lets it play within 1 second, and a jump to the human's turn does not",
+    "the arrow keys move the focus between the cells, stopping at the edges, and Enter or Space plays the focused cell",
+    "a whole game from the keyboard, with the score and the history following, logs no console error and makes no request outside the page's own server"
+  ]
+}
