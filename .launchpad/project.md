@@ -153,6 +153,12 @@ Everything of rounds 1 and 2 stays as it is, and their checks run again.
 
 Keyboard: the arrow keys move the focus between the cells (row and column, stopping at the edges), and Enter or Space plays the focused cell.
 
+Settled on round 2's winner, as the checks hold an entry to it:
+
+- A game counts once, the first time it ends. A game that ended, then was rewound through its history and ended again, counts nothing more: only New game, or a change of settings, starts a game that can count. A reload counts nothing. A jump through the history counts nothing.
+- `history-0` … `history-<n>` list the positions of the current game, *n* the moves played; New game and a change of settings leave `history-0` alone. A click on `history-<k>` shows the board after move *k*, with round 1's status for it and the winning marks (`data-win`) only where that position is won. A move from `history-<k>` drops the moves after *k*; a click on an occupied cell of a past position changes nothing.
+- The arrow keys move the focus from cell to cell by row and column and stop at the edges; Enter or Space plays the focused cell, as a click would; the focus stays on the board.
+
 ## How to run it
 
 `npm ci && npm run dev`, then open the address Vite prints.
@@ -180,6 +186,13 @@ Everything of rounds 1 to 3 stays as it is, and their checks run again.
 - `?game=<cells>` in the URL lists the cells in the order they were played, X first: `?game=40852` is X 4, O 0, X 8, O 5, X 2. Opening such a link shows that game, in two-player mode, with its status and marks, and play goes on from there.
 - A bad link (anything but the digits 0 to 8, a cell played twice, a move after the game ended, more than 9 moves) shows `data-testid="error"` with the reason, an empty board and `X to play`.
 - `share-url` shows the current game's full link, updated after every move; `copy-link` is a button that copies it to the clipboard.
+
+Settled on round 3's winner, as the checks hold an entry to it:
+
+- `?game=<cells>` opens that game in two-player mode (`mode` reads `pvp`, whatever was chosen before) with its history; `?game=` empty, or no `game` at all, is the empty game. The address bar may or may not follow the game.
+- `share-url`'s text (or its value, for an input) is the full link of the position shown: the page's origin and path, and `game=` the cells shown in order; for the empty board, no `game` or an empty one. It follows every move and every jump in the history. `copy-link` copies that link with `navigator.clipboard.writeText`.
+- A bad link shows one element `data-testid="error"` with a non-empty reason, the empty board, `X to play`, and the page still plays. Bad: any character but the digits 0 to 8, a cell twice, a move after the game ended, more than 9 moves.
+- A game opened from a link counts in the score when it ends on this page, not when it is opened; a link to a finished game counts nothing.
 
 ## How to run it
 
