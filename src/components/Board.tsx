@@ -3,11 +3,13 @@ import { position, type Board as BoardCells, type Mark, type Outcome } from "../
 interface BoardProps {
   board: BoardCells;
   outcome: Outcome;
+  /** The computer is about to move: no cell can be played meanwhile. */
+  locked?: boolean;
   onPlay: (cell: number) => void;
 }
 
 /** The 3×3 grid of cells. It shows the game and reports clicks; the rules decide what a click does. */
-export function Board({ board, outcome, onPlay }: BoardProps) {
+export function Board({ board, outcome, locked = false, onPlay }: BoardProps) {
   const over = outcome.status !== "playing";
   const winningCells = outcome.status === "won" ? outcome.winningCells : undefined;
   return (
@@ -16,14 +18,15 @@ export function Board({ board, outcome, onPlay }: BoardProps) {
       data-testid="board"
       role="group"
       aria-label="Board"
-      data-next={outcome.status === "playing" ? outcome.next : undefined}
+      data-next={outcome.status === "playing" && !locked ? outcome.next : undefined}
+      data-locked={locked ? "true" : undefined}
     >
       {board.map((mark, cell) => (
         <Cell
           key={cell}
           cell={cell}
           mark={mark}
-          playable={!over && mark === null}
+          playable={!over && !locked && mark === null}
           winning={winningCells?.has(cell) ?? false}
           onPlay={onPlay}
         />
