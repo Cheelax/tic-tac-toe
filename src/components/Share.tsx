@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   /** The link of the position shown. */
@@ -17,6 +17,11 @@ export function Share({ link, shown }: Props) {
   const field = useRef<HTMLInputElement>(null);
   const [copy, setCopy] = useState<Copy | null>(null);
   const current = copy?.link === link ? copy : null;
+  // A long link is cut on the left, not the right: its end, the moves, is what changes.
+  useEffect(() => {
+    const input = field.current;
+    if (input && document.activeElement !== input) input.scrollLeft = input.scrollWidth;
+  }, [link]);
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(link);

@@ -103,3 +103,30 @@ a beatable Easy game, and stale-reply, reset, and rapid-click cases. Existing ro
 
 `test/history.test.ts` covers the counting rules, the history and the computer's turn after a jump;
 `test/storage.test.ts` covers storage that is empty, garbled or failing, and the arrow keys' neighbours.
+
+## Share a game
+
+Open `?game=<cells>` to replay a game: the cells in the order they were played, X first, so
+`?game=40852` is X 4, O 0, X 8, O 5, X 2 (cells are numbered row by row from the top left, 0 to 8). Try
+it with `npm run dev`, then `http://localhost:5173/?game=40852`.
+
+- **One small, pure module.** `src/link.ts` parses and writes the link and nothing else: `gameOfSearch`
+  reads `location.search`, `parseMoves` replays the cells with round 1's rules (`play`, `outcomeOf`) and
+  `linkOf` writes the link of a position. No React, no DOM; `test/link.test.ts` round-trips every
+  position of every game (549,946 of them, the empty board included) and refuses every kind of bad link.
+- **Opening a link.** The game opens in two-player mode, whatever was chosen before, with every move in
+  the history and play going on from the last one. A link to a finished game shows it finished and counts
+  nothing in the score (it was counted where it was played); a game still on counts once, when it ends
+  here, as any game does.
+- **Bad links.** Anything but the digits 0 to 8, more than 9 moves, a cell played twice, a move after the
+  game ended, or `game=` given twice opens the empty board, `X to play`, with `error` saying what is wrong
+  ("Move 4 plays square 4, already taken on move 1."). The reason names the first problem and never
+  repeats the link, so a link of any length cannot stretch the page. It stays until the first move or a
+  new game. `?game=` with nothing after it is simply the empty board.
+- **Sharing.** Under the board, `share-url` shows the link of the position on the board: it follows every
+  move and every jump in the history (jump back to move 3 and the link opens move 3), and New game empties
+  it. Copy link copies it with `navigator.clipboard.writeText` and says what the link opens; when the
+  clipboard cannot be reached, the link is selected instead, for Ctrl+C. The link keeps the page's origin
+  and path and drops anything else in its query.
+- **The address bar is left alone.** It keeps the link the page was opened with, so a reload goes back to
+  that position; share-url is always the game on the board.
