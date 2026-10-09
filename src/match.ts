@@ -1,6 +1,7 @@
 import { boardOf, NEW_GAME, outcomeOf, play, type Moves, type Player } from "./game.ts";
 import type { Difficulty } from "./computer.ts";
 import { sameScore, scoreAfter, ZERO_SCORE, type Score } from "./score.ts";
+import type { LinkedGame } from "./links.ts";
 
 export interface Settings {
   mode: "pvp" | "cpu";
@@ -18,6 +19,7 @@ export interface Match {
   /** The current game has ended once: it counted then, and counts nothing more, whatever is replayed. */
   counted: boolean;
   score: Score;
+  linkError: string | null;
 }
 export const INITIAL_MATCH: Match = {
   history: NEW_GAME,
@@ -26,7 +28,20 @@ export const INITIAL_MATCH: Match = {
   revision: 0,
   counted: false,
   score: ZERO_SCORE,
+  linkError: null,
 };
+
+/** Loading a result is a replay, not a newly completed game. Rewinding it must not award another point. */
+export function matchFromLink(link: LinkedGame, score: Score): Match {
+  return {
+    ...INITIAL_MATCH,
+    history: link.moves,
+    moves: link.moves,
+    counted: outcomeOf(boardOf(link.moves)).status !== "playing",
+    score,
+    linkError: link.error,
+  };
+}
 export type MatchAction =
   | { type: "human"; cell: number }
   | { type: "computer"; cell: number; moves: Moves; revision: number }
@@ -60,6 +75,7 @@ export function matchReducer(match: Match, action: MatchAction): Match {
         settings: action.type === "settings" ? { ...match.settings, ...action.settings } : match.settings,
         revision: match.revision + 1,
         counted: false,
+        linkError: null,
       };
     case "jump": {
       const { step } = action;
@@ -87,6 +103,7 @@ function move(match: Match, cell: number): Match {
     ...match,
     history: moves,
     moves,
+    linkError: null,
     counted: match.counted || ends,
     score: ends && !match.counted ? scoreAfter(match.score, moves) : match.score,
   };

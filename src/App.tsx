@@ -4,6 +4,7 @@ import { GameControls } from "./components/GameControls";
 import { History } from "./components/History";
 import { Score } from "./components/Score";
 import { TurnNote } from "./components/TurnNote";
+import { Share } from "./components/Share";
 import { playerOfMove } from "./game";
 import { computerPlayer } from "./match";
 import { useGame } from "./useGame";
@@ -18,6 +19,11 @@ export default function App() {
         <p className="eyebrow">A SMALL GAME. A WORTHY OPPONENT.</p>
         <h1>Tic-Tac-Toe</h1>
       </header>
+      {game.linkError && (
+        <p className="link-error" data-testid="error" role="alert">
+          <strong>Could not open the game.</strong> {game.linkError} Start a new game below.
+        </p>
+      )}
       <GameControls settings={game.settings} onChange={game.changeSettings} />
       <Score score={game.score} onReset={game.resetScore} />
       <div className="turn-summary">
@@ -25,6 +31,7 @@ export default function App() {
         <TurnNote moves={game.moves} outcome={game.outcome} thinking={game.thinking} settings={game.settings} />
       </div>
       <Board board={game.board} outcome={game.outcome} onPlay={game.playCell} locked={game.thinking} lastComputerCell={lastComputerCell} />
+      <Share url={game.shareUrl} moveCount={game.moves.length} />
       <History history={game.history} shown={game.moves.length} onJump={game.jump} />
       <button type="button" className="new-game" data-testid="new-game" onClick={game.newGame}>New game</button>
       <p className="keyboard-hint" id="board-keys">Arrow keys move between squares · Enter or Space plays</p>

@@ -103,3 +103,21 @@ a beatable Easy game, and stale-reply, reset, and rapid-click cases. Existing ro
 
 `test/history.test.ts` covers the counting rules, the history and the computer's turn after a jump;
 `test/storage.test.ts` covers storage that is empty, garbled or failing, and the arrow keys' neighbours.
+
+## Share a game
+
+Copy link shares the position currently shown, including after a history jump or a computer move.
+The read-only Game link field can also be selected and copied manually if clipboard permission is denied.
+A live message reports whether copying succeeded. Links keep the current origin and path and contain only
+`?game=` followed by the played cells; unrelated query parameters and fragments are omitted.
+
+Opening a link always starts in two-player mode. A finished replay adds no points, including if rewound
+and finished again. An unfinished replay counts once if completed here. The address bar stays at the
+original link; the displayed sharing link follows play. Reloading therefore reopens the original position.
+New game clears the replay and the displayed sharing link, while retaining the score and settings.
+
+`src/links.ts` parses and writes the format without browser or React dependencies. It checks the length
+before examining moves, accepts only digits 0–8, and uses the existing rules to validate the entire replay.
+Repeated cells, moves after an ending, and duplicate game parameters produce a reason and an empty,
+playable board. A legal move or New game dismisses the error. `test/links.test.ts` checks every legal
+replay against an independent game generator and covers malformed links and imported-game counting.
