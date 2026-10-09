@@ -1,5 +1,6 @@
 import { boardOf, NEW_GAME, outcomeOf, play, type Moves, type Player } from "./game.ts";
 import type { Difficulty } from "./computer.ts";
+import type { LinkGame } from "./link.ts";
 import { sameScore, scoreAfter, ZERO_SCORE, type Score } from "./score.ts";
 
 export interface Settings {
@@ -18,6 +19,8 @@ export interface Match {
   /** The current game has ended once: it counted then, and counts nothing more, whatever is replayed. */
   counted: boolean;
   score: Score;
+  /** Why the link the page was opened with holds no game; shown until the first move or a new game. */
+  linkError: string | null;
 }
 export const INITIAL_MATCH: Match = {
   history: NEW_GAME,
@@ -26,6 +29,7 @@ export const INITIAL_MATCH: Match = {
   revision: 0,
   counted: false,
   score: ZERO_SCORE,
+  linkError: null,
 };
 export type MatchAction =
   | { type: "human"; cell: number }
@@ -45,6 +49,18 @@ export function isComputerTurn(match: Match): boolean {
 }
 
 /**
+ * The match a page opens on with the game its link holds: two players, every move in the history, the last one
+ * shown. A game that already ended was counted wherever it was played, so it counts nothing here; one still on
+ * counts when it ends on this page. A link that holds no game opens the empty board, with the reason.
+ */
+export function matchOfLink(link: LinkGame, match: Match = INITIAL_MATCH): Match {
+  const settings: Settings = { ...match.settings, mode: "pvp" };
+  if (!link.ok) return { ...match, history: NEW_GAME, moves: NEW_GAME, settings, counted: false, linkError: link.reason };
+  const ended = outcomeOf(boardOf(link.moves)).status !== "playing";
+  return { ...match, history: link.moves, moves: link.moves, settings, counted: ended, linkError: null };
+}
+
+/**
  * All input and resets are atomic; a delayed move only applies to the position that scheduled it. The score
  * lives here too, so a game is counted in the same step as the move that ends it, and only the first time.
  */
@@ -60,6 +76,7 @@ export function matchReducer(match: Match, action: MatchAction): Match {
         settings: action.type === "settings" ? { ...match.settings, ...action.settings } : match.settings,
         revision: match.revision + 1,
         counted: false,
+        linkError: null,
       };
     case "jump": {
       const { step } = action;
@@ -89,5 +106,6 @@ function move(match: Match, cell: number): Match {
     moves,
     counted: match.counted || ends,
     score: ends && !match.counted ? scoreAfter(match.score, moves) : match.score,
+    linkError: null,
   };
 }

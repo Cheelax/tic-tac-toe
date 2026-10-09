@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useMemo, useReducer } from "react";
 import { boardOf, outcomeOf } from "./game";
 import { easyMove, hardMove } from "./computer";
-import { INITIAL_MATCH, isComputerTurn, matchReducer, type Match, type Settings } from "./match";
+import { gameOfSearch, linkOf } from "./link";
+import { INITIAL_MATCH, isComputerTurn, matchOfLink, matchReducer, type Match, type Settings } from "./match";
 import { loadScore, onSavedScoreChange, saveScore } from "./storage";
 
 export const COMPUTER_PAUSE_MS = 250;
 
-const startMatch = (): Match => ({ ...INITIAL_MATCH, score: loadScore() });
+// The page opens on the game its address holds (`?game=…`), or on the empty board.
+const startMatch = (): Match => ({ ...matchOfLink(gameOfSearch(window.location.search), INITIAL_MATCH), score: loadScore() });
 
 /** React owns scheduling and storage; the computer policy and match transitions have no UI dependency. */
 export function useGame() {
   const [match, dispatch] = useReducer(matchReducer, undefined, startMatch);
   const board = useMemo(() => boardOf(match.moves), [match.moves]);
   const outcome = useMemo(() => outcomeOf(board), [board]);
+  // The link of the position shown, on this page's address; the address bar itself is left as it was opened.
+  const link = useMemo(() => linkOf(window.location.href, match.moves), [match.moves]);
   const thinking = isComputerTurn(match);
   useEffect(() => {
     if (!thinking) return;
@@ -33,6 +37,6 @@ export function useGame() {
   const resetScore = useCallback(() => dispatch({ type: "reset-score" }), []);
   return {
     moves: match.moves, history: match.history, settings: match.settings, score: match.score, board, outcome, thinking,
-    playCell, newGame, changeSettings, jump, resetScore,
+    link, linkError: match.linkError, playCell, newGame, changeSettings, jump, resetScore,
   };
 }
